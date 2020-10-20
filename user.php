@@ -37,7 +37,7 @@ class User implements Account{
         $hashedpass = password_hash($this->getPassword(), PASSWORD_DEFAULT);
         try{
             $stmt=$pdo->prepare("INSERT INTO `users2`(`NAME`, `EMAIL`, `PASS`, `LOCATION`) VALUES (?,?,?,?)");
-            $stmt->execute([$this->getname(),$this->getEmail(),$hashedpass,$this->getLocation()]);
+            $stmt->execute([$this->getname(),$this->getEmail(),$this->getPassword(),$this->getLocation()]);
             $stmt = null;
             header("Location: ../IAPPDO2/LandingPage.php?success");
         }catch(PDOExecption $e){
@@ -46,19 +46,24 @@ class User implements Account{
     }
     public function login($pdo) {
         try{
-            $stmt=$pdo->prepare("SELECT `NAME`, `EMAIL`, `PASS`, `LOCATION` FROM `users2` WHERE `EMAIL`= ?");
+            $stmt=$pdo->prepare("SELECT `ID`,`NAME`, `EMAIL`, `PASS`, `LOCATION` FROM `users2` WHERE `EMAIL`= ?");
             $stmt->execute([$this->getEmail()]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch();
             $stmt = null;
+            $_SESSION['NAME1']=$result['NAME'];
+            $_SESSION['LOCATION1']=$result['LOCATION'];
+            $_SESSION['EMAIL1']=$result['EMAIL'];
+            $_SESSION['PASS']= !password_verify($this->getPassword(),$result['PASS']);
             if($result==false){
                 header("Location: ../IAPPDO2/Login.php?UserNotFound");
             }else{
                 $password = password_verify($this->getPassword(),$result[`PASS`]);
-                if($password){
+                if($result['PASS']==$this->getPassword()){
+                    $_SESSION['ID']=$result['ID'];
                     $_SESSION['NAME']=$result['NAME'];
                     $_SESSION['LOCATION']=$result['LOCATION'];
                     $_SESSION['EMAIL']=$result['EMAIL'];
-                    if(!empty($_SESSION['NAME']) && !empty($_SESSION['LOCATION'])){
+                    if(!empty($_SESSION['NAME']) || !empty($_SESSION['LOCATION'])){
                         header("Location: ../IAPPDO2/usersLandingPage.php?SUCCESS");
                     }else{
                         header("Location: ../IAPPDO2/Login.php?FAILURE");
@@ -72,17 +77,22 @@ class User implements Account{
             return $e->getMesage();
         }
     }
-    public function changePassword($pdo) {
+    public function changePassword($pdo,$id) {
         try{
-            $stmt=$pdo->prepare("UPDATE users2 SET 'PASS' = ? ");
+            $stmt=$pdo->prepare(
+                "UPDATE `users2` 
+                SET `PASS` = ? 
+                WHERE `ID` = $id"
+                );
             $stmt->execute([$this->getPassword()]);
             $stmt = null;
+            header("Location: ../IAPPDO2/usersLandingPage.php?passchange=success");
         } catch (PDOException $e){
             return $e->getMessage();
         }
     }
     public function logout ($pdo){
-        
+        header("Location: ../IAPPDO2/Logout.php");
     }
 } 
 ?>

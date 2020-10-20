@@ -21,9 +21,9 @@
 <br>
 <br>
 <form action="loginregister.php" method="post">
-	<label for="email">Email:</label>
+	<label >Email:</label>
 	<input type="text" name="email" required="">
-	<label for="pass">Password:</label>
+	<label >Password:</label>
 	<input type="password" name="pass" required="">
 	<button type="submit" name="submit">Login</button>
 </form>
